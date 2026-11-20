@@ -1,0 +1,34 @@
+{
+  "name": "skinbase",
+  "pages_build_output_dir": "./public",
+  "compatibility_date": "2024-12-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "skinbase-db",
+      "database_id": "<YOUR_D1_DATABASE_ID>"
+    }
+  ],
+  "kv_namespaces": [
+    {
+      "binding": "SKINS_KV",
+      "id": "<YOUR_KV_NAMESPACE_ID>"
+    }
+  ],
+  "vars": {
+    // Альбом Capes на CatBox (короткий id из ссылки /c/lb0a1k). userhash — секрет CATBOX_USERHASH.
+    "CATBOX_ALBUM": "lb0a1k",
+
+    // S3-совместимое хранилище Supabase Storage. Ключи и регион — секреты
+    // (S3_ACCESS_KEY_ID / S3_SECRET_ACCESS_KEY / S3_REGION), ставятся через
+    // `wrangler pages secret put`.
+    //
+    // Пока S3_REGION не задан, s3Configured() возвращает false и загрузка
+    // уходит в CatBox: переезд переключается целиком одной настройкой, а не
+    // правкой кода.
+    "S3_ENDPOINT": "https://uefqmxajdzeyakvatyby.storage.supabase.co/storage/v1/s3",
+    "S3_BUCKET": "capes",
+    "S3_PUBLIC_BASE": "https://uefqmxajdzeyakvatyby.supabase.co/storage/v1/object/public/capes"
+  }
+}

@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SkinBase — Мини-админка брендинга</title>
+  <style>
+    :root {
+      --bg:#16120e; --surface:#1f1a14; --surface2:#241e17; --border:#352d24; --border2:#4a3f33;
+      --text:#e8ddd0; --muted:#a69685; --dim:#736659; --accent:#c97d40; --green:#3a9d66; --red:#d45a4a;
+      --radius:10px; --font: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:var(--font);background:var(--bg);color:var(--text);line-height:1.45}
+    .wrap{max-width:1200px;margin:0 auto;padding:20px}
+    h1{font-size:22px;margin-bottom:4px}
+    .sub{color:var(--muted);font-size:13px;margin-bottom:18px}
+    .grid{display:grid;grid-template-columns:360px 1fr;gap:16px;align-items:start}
+    @media(max-width:980px){.grid{grid-template-columns:1fr}}
+    .card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:14px}
+    .card h2{font-size:15px;margin-bottom:10px}
+    .card h3{font-size:13px;color:var(--muted);margin:10px 0 6px;font-weight:600}
+    label{display:block;font-size:12px;color:var(--muted);margin:8px 0 4px}
+    input[type=text],input[type=url],input[type=password],textarea,select{width:100%;background:#120f0c;color:var(--text);border:1px solid var(--border);border-radius:8px;padding:8px 10px;font:13px/1.4 ui-monospace, SFMono-Regular, Consolas, monospace}
+    textarea{min-height:140px;resize:vertical}
+    input[type=range]{width:100%}
+    .row{display:flex;gap:8px;align-items:center}
+    .row > *{flex:1}
+    .row .val{flex:0 0 56px;text-align:right;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+    .color-row{display:grid;grid-template-columns:1fr 42px 92px;gap:8px;align-items:center;margin:6px 0}
+    .color-row label{margin:0;font-size:12px;color:var(--text)}
+    input[type=color]{width:42px;height:32px;padding:0;border:1px solid var(--border);background:#120f0c;border-radius:6px;cursor:pointer}
+    .btn{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:9px 12px;cursor:pointer;font:600 13px/1 var(--font)}
+    .btn:hover{filter:brightness(1.08)}
+    .btn.sec{background:var(--surface2);color:var(--text);border:1px solid var(--border)}
+    .btn.danger{background:var(--red)}
+    .btn:disabled{opacity:.6;cursor:default}
+    .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+    .status{font-size:12px;color:var(--muted);margin-top:8px;min-height:18px}
+    .status.err{color:var(--red)} .status.ok{color:var(--green)}
+    .preview-box{background:#0f0c09;border:1px solid var(--border);border-radius:10px;padding:12px}
+    .p-nav{display:flex;align-items:center;justify-content:space-between;background:var(--p-surface,var(--surface));border:1px solid var(--p-border,var(--border));border-radius:8px;padding:8px 10px;margin-bottom:10px}
+    .p-brand{display:flex;align-items:center;gap:8px;font-weight:700;color:var(--p-text,var(--text))}
+    .p-brand img{height:28px;width:auto;image-rendering:auto;border-radius:4px;object-fit:contain;background:rgba(0,0,0,.15)}
+    .p-body{background:var(--p-bg,var(--bg));border:1px solid var(--p-border,var(--border));border-radius:8px;padding:12px;color:var(--p-text,var(--text))}
+    .p-card{background:var(--p-surface,var(--surface));border:1px solid var(--p-border,var(--border));border-radius:var(--p-radius,10px);padding:10px;margin-top:8px}
+    .p-btn{display:inline-block;background:var(--p-accent,var(--accent));color:#fff;border-radius:8px;padding:6px 10px;font-size:12px;font-weight:600;margin-top:8px}
+    .p-muted{color:var(--p-text2,var(--muted));font-size:12px}
+    .thumb{max-height:56px;max-width:100%;object-fit:contain;background:#120f0c;border:1px solid var(--border);border-radius:8px;padding:4px}
+    .two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    @media(max-width:640px){.two{grid-template-columns:1fr}.color-row{grid-template-columns:1fr 42px 92px}}
+    .hint{font-size:11px;color:var(--dim);margin-top:6px}
+    code{font-family:ui-monospace,Consolas,monospace;font-size:12px;background:#120f0c;padding:1px 4px;border-radius:4px}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Мини-админка брендинга / темы</h1>
+    <div class="sub">Отдельная страница для настройки логотипа, иконки и темы SkinBase. Сохраняет конфиг через branding API (без пересборки основного сайта).</div>
+
+    <div class="grid">
+      <div>
+        <div class="card">
+          <h2>1. Подключение к API</h2>
+          <label>GET config URL (публичный)</label>
+          <input type="text" id="cfg-get" placeholder="/api/branding/config или https://.../api/branding/config">
+          <label>POST admin URL (сохранение, только GGSHNIKK на бэкенде)</label>
+          <input type="text" id="cfg-post" placeholder="/api/branding/config или https://.../api/branding/config">
+          <label>Заголовок авторизации (необязательно, напр. Authorization или X-Admin-Token)</label>
+          <input type="text" id="cfg-auth-header" placeholder="Authorization">
+          <label>Значение авторизации (необязательно, напр. Bearer ... / секрет)</label>
+          <input type="password" id="cfg-auth-value" placeholder="секрет/токен, если бэкенд требует">
+          <div class="actions">
+            <button class="btn sec" id="btn-load">Загрузить текущий конфиг</button>
+            <button class="btn sec" id="btn-save-endpoints">Запомнить адреса</button>
+          </div>
+          <div class="hint">Адреса сохраняются локально в этом браузере. Бэкенд обязан сам проверять права (GGSHNIKK / токен).</div>
+          <div class="status" id="st-api"></div>
+        </div>
+
+        <div class="card">
+          <h2>2. Бренд и иконки</h2>
+          <label>Название бренда</label>
+          <input type="text" id="brand-name" placeholder="SkinBase">
+
+          <label>Логотип (шапка/экран входа) — URL или data URL</label>
+          <input type="text" id="logo-url" placeholder="https://.../logo.png">
+          <div class="row" style="margin-top:6px">
+            <input type="file" id="logo-file" accept="image/*">
+            <img id="logo-prev" class="thumb" alt="" style="flex:0 0 72px;height:40px">
+          </div>
+          <div style="margin-top:8px">
+            <label>Размер логотипа, px (ползунок) — <span id="logo-h-val">28</span>px</label>
+            <input type="range" id="logo-h" min="16" max="72" step="1" value="28">
+          </div>
+
+          <h3 style="margin-top:12px">Иконка / favicon</h3>
+          <label>URL иконки (favicon/app icon в контенте)</label>
+          <input type="text" id="icon-url" placeholder="https://.../icon.png">
+          <div class="row" style="margin-top:6px">
+            <input type="file" id="icon-file" accept="image/*">
+            <img id="icon-prev" class="thumb" alt="" style="flex:0 0 72px;height:40px">
+          </div>
+          <div style="margin-top:8px">
+            <label>Скругление иконок, px (ползунок) — <span id="icon-r-val">6</span>px</label>
+            <input type="range" id="icon-r" min="0" max="24" step="1" value="6">
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="card">
+          <h2>3. Тема — ползунки и цвета</h2>
+          <div class="two">
+            <div>
+              <h3>Цвета</h3>
+              <div class="color-row"><label>Фон (bg)</label><input type="color" id="c-bg" value="#16120e"><input type="text" id="t-bg" value="#16120e"></div>
+              <div class="color-row"><label>Поверхность (surface)</label><input type="color" id="c-surface" value="#1f1a14"><input type="text" id="t-surface" value="#1f1a14"></div>
+              <div class="color-row"><label>Поверхность hover</label><input type="color" id="c-surface2" value="#2a231c"><input type="text" id="t-surface2" value="#2a231c"></div>
+              <div class="color-row"><label>Граница (border)</label><input type="color" id="c-border" value="#352d24"><input type="text" id="t-border" value="#352d24"></div>
+              <div class="color-row"><label>Граница hover</label><input type="color" id="c-border2" value="#4a3f33"><input type="text" id="t-border2" value="#4a3f33"></div>
+              <div class="color-row"><label>Текст</label><input type="color" id="c-text" value="#e8ddd0"><input type="text" id="t-text" value="#e8ddd0"></div>
+              <div class="color-row"><label>Текст вторичный</label><input type="color" id="c-text2" value="#a69685"><input type="text" id="t-text2" value="#a69685"></div>
+              <div class="color-row"><label>Акцент</label><input type="color" id="c-accent" value="#c97d40"><input type="text" id="t-accent" value="#c97d40"></div>
+              <div class="color-row"><label>Успех (green)</label><input type="color" id="c-green" value="#3a9d66"><input type="text" id="t-green" value="#3a9d66"></div>
+              <div class="color-row"><label>Ошибка (red)</label><input type="color" id="c-red" value="#d45a4a"><input type="text" id="t-red" value="#d45a4a"></div>
+            </div>
+            <div>
+              <h3>Форма и эффекты (ползунки)</h3>
+              <label>Скругление карточек, px — <span id="v-radius">10</span></label>
+              <input type="range" id="s-radius" min="0" max="28" step="1" value="10">
+              <label>Скругление мелких элементов, px — <span id="v-radius-sm">7</span></label>
+              <input type="range" id="s-radius-sm" min="0" max="20" step="1" value="7">
+              <label>Сила свечения акцента, % — <span id="v-glow">25</span></label>
+              <input type="range" id="s-glow" min="0" max="80" step="1" value="25">
+              <label>Затемнение фона, % (оверлей) — <span id="v-dim">0</span></label>
+              <input type="range" id="s-dim" min="0" max="70" step="1" value="0">
+              <label>Насыщенность (фильтр), % — <span id="v-sat">100</span></label>
+              <input type="range" id="s-sat" min="50" max="150" step="1" value="100">
+              <label>Яркость (фильтр), % — <span id="v-bri">100</span></label>
+              <input type="range" id="s-bri" min="60" max="140" step="1" value="100">
+
+              <h3 style="margin-top:14px">Превью</h3>
+              <div class="preview-box" id="preview">
+                <div class="p-nav"><div class="p-brand"><img id="p-logo" src="" alt=""><span id="p-brand">SkinBase</span></div><span class="p-muted">пользователь</span></div>
+                <div class="p-body">
+                  <div style="font-weight:600;margin-bottom:2px">Библиотека / Тема</div>
+                  <div class="p-muted">Так примерно выглядят цвета, фон и скругления.</div>
+                  <div class="p-card">Карточка / виджет <div class="p-btn">Акцент</div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <h3>Сгенерированный CSS темы (редактируемый)</h3>
+          <textarea id="css-out" spellcheck="false"></textarea>
+          <div class="actions">
+            <button class="btn sec" id="btn-gen">Пересобрать CSS из ползунков</button>
+            <button class="btn sec" id="btn-apply-preview">Применить превью на этой странице</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>4. Публикация</h2>
+          <div class="actions">
+            <button class="btn" id="btn-publish">Сохранить и опубликовать</button>
+            <button class="btn danger" id="btn-reset">Сбросить на дефолт</button>
+          </div>
+          <div class="status" id="st-pub"></div>
+          <div class="hint">Публикация отправляет <code>POST</code> на admin URL: <code>{ config: { version, logoUrl, iconUrl, faviconUrl, brandName, themeCss, updatedAt } }</code>. Основной сайт/клиент подхватят конфиг при следующем запросе (кеш/опрос в branding.js). Реальная проверка прав — на бэкенде.</div>
+        </div>
+        <div class="card" id="admins-card">
+          <h2>5. Администраторы (только GGSHNIKK)</h2>
+          <div class="hint">Назначенные здесь пользователи получают полные админ-права (удаление, брендинг и т.д.). Управление доступно только суперадмину GGSHNIKK. Требуется действующая сессия GGSHNIKK (или заголовок авторизации выше).</div>
+          <label>Логин пользователя</label>
+          <div class="row">
+            <input type="text" id="admin-username" placeholder="username">
+            <button class="btn" id="btn-admin-add" style="flex:0 0 auto">Назначить</button>
+          </div>
+          <div class="actions">
+            <button class="btn sec" id="btn-admins-load">Обновить список</button>
+          </div>
+          <div class="status" id="st-admins"></div>
+          <div id="admins-list" style="margin-top:8px;font-size:13px"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <style id="live-preview-style"></style>
+  <script>
+  (function(){
+    const $ = (s)=>document.querySelector(s);
+    const LS = 'sb_branding_admin_v1';
+
+    const defaults = {
+      colors: { bg:'#16120e', surface:'#1f1a14', surface2:'#2a231c', border:'#352d24', border2:'#4a3f33', text:'#e8ddd0', text2:'#a69685', accent:'#c97d40', green:'#3a9d66', red:'#d45a4a' },
+      nums: { radius:10, radiusSm:7, glow:25, dim:0, sat:100, bri:100, logoH:28, iconR:6 }
+    };
+
+    function loadLocal(){
+      try{ return JSON.parse(localStorage.getItem(LS)||'{}'); }catch(e){ return {}; }
+    }
+    function saveLocal(patch){
+      const cur = loadLocal();
+      localStorage.setItem(LS, JSON.stringify(Object.assign({}, cur, patch)));
+    }
+
+    function endpoints(){
+      return {
+        get: ($('#cfg-get').value || '/api/branding/config').trim(),
+        post: ($('#cfg-post').value || '/api/branding/config').trim(),
+        authH: ($('#cfg-auth-header').value||'').trim(),
+        authV: ($('#cfg-auth-value').value||'').trim()
+      };
+    }
+
+    function setStatus(id, msg, kind){
+      const el = $(id); if(!el) return;
+      el.textContent = msg||''; el.className = 'status' + (kind?(' '+kind):'');
+    }
+
+    function hexNorm(v, fb){ v=(v||'').trim(); return /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(v)?v:fb; }
+    function hexToRgb(hex){
+      hex = hex.replace('#','');
+      if(hex.length===3) hex = hex.split('').map(c=>c+c).join('');
+      const n=parseInt(hex,16); return {r:(n>>16)&255,g:(n>>8)&255,b:n&255};
+    }
+    function clamp(n,min,max){ n=Number(n); return isFinite(n)?Math.min(max,Math.max(min,n)):min; }
+
+    function readThemeFromControls(){
+      const c = {
+        bg: hexNorm($('#t-bg').value, defaults.colors.bg),
+        surface: hexNorm($('#t-surface').value, defaults.colors.surface),
+        surface2: hexNorm($('#t-surface2').value, defaults.colors.surface2),
+        border: hexNorm($('#t-border').value, defaults.colors.border),
+        border2: hexNorm($('#t-border2').value, defaults.colors.border2),
+        text: hexNorm($('#t-text').value, defaults.colors.text),
+        text2: hexNorm($('#t-text2').value, defaults.colors.text2),
+        accent: hexNorm($('#t-accent').value, defaults.colors.accent),
+        green: hexNorm($('#t-green').value, defaults.colors.green),
+        red: hexNorm($('#t-red').value, defaults.colors.red),
+      };
+      const n = {
+        radius: clamp($('#s-radius').value,0,28),
+        radiusSm: clamp($('#s-radius-sm').value,0,20),
+        glow: clamp($('#s-glow').value,0,80),
+        dim: clamp($('#s-dim').value,0,70),
+        sat: clamp($('#s-sat').value,50,150),
+        bri: clamp($('#s-bri').value,60,140),
+        logoH: clamp($('#logo-h').value,16,72),
+        iconR: clamp($('#icon-r').value,0,24),
+      };
+      return {c,n};
+    }
+
+    function generateCss(){
+      const {c,n} = readThemeFromControls();
+      const ar = hexToRgb(c.accent);
+      let css = ':root {\n';
+      css += '  --bg: ' + c.bg + ';\n';
+      css += '  --surface: ' + c.surface + ';\n';
+      css += '  --surface-hover: ' + c.surface2 + ';\n';
+      css += '  --border: ' + c.border + ';\n';
+      css += '  --border-hover: ' + c.border2 + ';\n';
+      css += '  --text: ' + c.text + ';\n';
+      css += '  --text-secondary: ' + c.text2 + ';\n';
+      css += '  --text-tertiary: ' + c.text2 + ';\n';
+      css += '  --accent: ' + c.accent + ';\n';
+      css += '  --accent-glow: rgba(' + ar.r + ', ' + ar.g + ', ' + ar.b + ', ' + (n.glow/100).toFixed(2) + ');\n';
+      css += '  --green: ' + c.green + ';\n';
+      css += '  --red: ' + c.red + ';\n';
+      css += '  --radius: ' + n.radius + 'px;\n';
+      css += '  --radius-sm: ' + n.radiusSm + 'px;\n';
+      css += '}\n';
+      css += 'body { background: var(--bg); color: var(--text); filter: saturate(' + n.sat + '%) brightness(' + n.bri + '%); }\n';
+      if (n.dim > 0) {
+        css += 'body::before { content:""; position:fixed; inset:0; pointer-events:none; background:rgba(0,0,0,' + (n.dim/100).toFixed(2) + '); z-index:0; }\n';
+        css += '#app{ position:relative; z-index:1; }\n';
+      }
+      css += '.brand-icon, .auth-brand { height: ' + n.logoH + 'px !important; width: auto; }\n';
+      css += 'img.brand-icon, img.auth-brand, .brand-icon { border-radius: ' + n.iconR + 'px; }\n';
+      css += '.skin-card, .card, .panel, .modal-content { border-radius: var(--radius); }\n';
+      $('#css-out').value = css;
+      updatePreview(c,n);
+      return css;
+    }
+
+    function updatePreview(c,n){
+      const p = $('#preview');
+      p.style.setProperty('--p-bg', c.bg);
+      p.style.setProperty('--p-surface', c.surface);
+      p.style.setProperty('--p-border', c.border);
+      p.style.setProperty('--p-text', c.text);
+      p.style.setProperty('--p-text2', c.text2);
+      p.style.setProperty('--p-accent', c.accent);
+      p.style.setProperty('--p-radius', n.radius+'px');
+      $('#p-brand').textContent = ($('#brand-name').value||'SkinBase');
+      const logo = ($('#logo-url').value||'').trim();
+      const pLogo = $('#p-logo');
+      if(logo){ pLogo.src = logo; pLogo.style.display=''; pLogo.style.height = n.logoH+'px'; pLogo.style.borderRadius = n.iconR+'px'; }
+      else { pLogo.removeAttribute('src'); pLogo.style.display='none'; }
+      $('#v-radius').textContent=n.radius; $('#v-radius-sm').textContent=n.radiusSm; $('#v-glow').textContent=n.glow;
+      $('#v-dim').textContent=n.dim; $('#v-sat').textContent=n.sat; $('#v-bri').textContent=n.bri;
+      $('#logo-h-val').textContent=n.logoH; $('#icon-r-val').textContent=n.iconR;
+    }
+
+    function applyPreviewToPage(){
+      $('#live-preview-style').textContent = $('#css-out').value || generateCss();
+      setStatus('st-pub','Превью CSS применён на этой странице (локально).','ok');
+    }
+
+    function syncPair(colorId, textId){
+      const c=$(colorId), t=$(textId);
+      c.addEventListener('input', ()=>{ t.value=c.value; generateCss(); });
+      t.addEventListener('input', ()=>{ const v=hexNorm(t.value,c.value); c.value=v; generateCss(); });
+    }
+
+    function bindFile(fileId, textId, prevId){
+      $(fileId).addEventListener('change', (e)=>{
+        const f=e.target.files && e.target.files[0]; if(!f) return;
+        const r=new FileReader();
+        r.onload=()=>{ $(textId).value=String(r.result||''); if(prevId) $(prevId).src=$(textId).value; generateCss(); };
+        r.readAsDataURL(f);
+      });
+    }
+
+    function buildConfig(){
+      const css = $('#css-out').value || generateCss();
+      const logo = ($('#logo-url').value||'').trim();
+      const icon = ($('#icon-url').value||'').trim();
+      return {
+        version: Date.now(),
+        updatedAt: new Date().toISOString(),
+        brandName: ($('#brand-name').value||'').trim(),
+        logoUrl: logo,
+        iconUrl: icon,
+        faviconUrl: icon,
+        themeCss: css
+      };
+    }
+
+    async function apiFetch(url, opts){
+      const ep=endpoints();
+      opts = Object.assign({credentials:'include'}, opts||{});
+      opts.headers = Object.assign({}, opts.headers||{});
+      if(ep.authH && ep.authV) opts.headers[ep.authH]=ep.authV;
+      const res = await fetch(url, opts);
+      const text = await res.text();
+      let data=null; try{ data = text?JSON.parse(text):null; }catch(e){}
+      if(!res.ok) throw new Error((data && (data.error||data.message)) || ('HTTP '+res.status+(text?(' '+text.slice(0,120)):'') ));
+      return data;
+    }
+
+    async function loadConfig(){
+      const ep=endpoints();
+      setStatus('st-api','Загрузка...');
+      try{
+        const url = ep.get + (ep.get.includes('?')?'&':'?') + '_=' + Date.now();
+        const data = await apiFetch(url, {method:'GET', credentials:'omit'});
+        const cfg = (data && data.config) ? data.config : (data||{});
+        applyLoadedConfig(cfg);
+        setStatus('st-api','Конфиг загружен (version: '+(cfg.version||'—')+').','ok');
+      }catch(e){ setStatus('st-api','Не удалось загрузить: '+e.message+'. Можно настроить вручную и опубликовать.','err'); }
+    }
+
+    function applyLoadedConfig(cfg){
+      if(!cfg) return;
+      if(cfg.brandName!=null) $('#brand-name').value = cfg.brandName||'';
+      if(cfg.logoUrl!=null || cfg.logo!=null){ $('#logo-url').value = cfg.logoUrl||cfg.logo||''; $('#logo-prev').src=$('#logo-url').value; }
+      const ic = cfg.faviconUrl||cfg.iconUrl||cfg.icon||'';
+      if(ic){ $('#icon-url').value = ic; $('#icon-prev').src=ic; }
+      if(cfg.themeCss){ $('#css-out').value = cfg.themeCss; setStatus('st-pub','Загружен сохранённый themeCss (ползунки могут не совпадать с ним, пока не пересоберёте).',''); }
+      generateCss();
+    }
+
+    async function publish(){
+      const ep=endpoints();
+      const cfg=buildConfig();
+      setStatus('st-pub','Сохранение...');
+      $('#btn-publish').disabled=true;
+      try{
+        const saved = await apiFetch(ep.post, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({config: cfg, user:{username:'GGSHNIKK'}})});
+        const finalCfg = (saved && saved.config) ? saved.config : (saved && saved.version!=null ? saved : cfg);
+        if(finalCfg.themeCss) $('#css-out').value = finalCfg.themeCss;
+        setStatus('st-pub','Опубликовано ✓ (version: '+(finalCfg.version||cfg.version)+')','ok');
+      }catch(e){ setStatus('st-pub','Ошибка сохранения: '+e.message,'err'); }
+      finally{ $('#btn-publish').disabled=false; }
+    }
+
+    async function resetDefault(){
+      if(!confirm('Сбросить брендинг/тему на дефолт на сервере?')) return;
+      const ep=endpoints();
+      const cfg={version:Date.now(), reset:true, logoUrl:'', iconUrl:'', faviconUrl:'', themeCss:'', brandName:''};
+      setStatus('st-pub','Сброс...');
+      try{
+        await apiFetch(ep.post, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({config: cfg, reset:true, user:{username:'GGSHNIKK'}})});
+        $('#css-out').value=''; $('#logo-url').value=''; $('#icon-url').value=''; $('#brand-name').value='';
+        $('#logo-prev').removeAttribute('src'); $('#icon-prev').removeAttribute('src');
+        setStatus('st-pub','Сброшено на дефолт ✓','ok');
+      }catch(e){ setStatus('st-pub','Ошибка сброса: '+e.message,'err'); }
+    }
+
+    function init(){
+      const loc=loadLocal();
+      if(loc.get) $('#cfg-get').value=loc.get;
+      if(loc.post) $('#cfg-post').value=loc.post;
+      if(loc.authH) $('#cfg-auth-header').value=loc.authH;
+
+      [['#c-bg','#t-bg'],['#c-surface','#t-surface'],['#c-surface2','#t-surface2'],['#c-border','#t-border'],['#c-border2','#t-border2'],['#c-text','#t-text'],['#c-text2','#t-text2'],['#c-accent','#t-accent'],['#c-green','#t-green'],['#c-red','#t-red']].forEach(p=>syncPair(p[0],p[1]));
+      ['#s-radius','#s-radius-sm','#s-glow','#s-dim','#s-sat','#s-bri','#logo-h','#icon-r','#logo-url','#brand-name'].forEach(id=>{
+        $(id).addEventListener('input', generateCss);
+      });
+      $('#icon-url').addEventListener('input', ()=>{ $('#icon-prev').src=$('#icon-url').value; });
+      bindFile('#logo-file','#logo-url','#logo-prev');
+      bindFile('#icon-file','#icon-url','#icon-prev');
+
+      $('#btn-gen').addEventListener('click', ()=>{ generateCss(); setStatus('st-pub','CSS пересобран из ползунков.','ok'); });
+      $('#btn-apply-preview').addEventListener('click', applyPreviewToPage);
+      $('#btn-load').addEventListener('click', loadConfig);
+      $('#btn-publish').addEventListener('click', publish);
+      $('#btn-reset').addEventListener('click', resetDefault);
+      $('#btn-save-endpoints').addEventListener('click', ()=>{ const ep=endpoints(); saveLocal({get:ep.get, post:ep.post, authH:ep.authH}); setStatus('st-api','Адреса сохранены локально.','ok'); });
+
+
+      function adminsApiBase(){
+        const ep = endpoints();
+        // admins endpoints live on same origin as /api/v3; derive from configured URLs
+        try {
+          const u = new URL(ep.post, location.href);
+          return u.origin;
+        } catch(e) { return ''; }
+      }
+
+      async function loadAdmins(){
+        const base = adminsApiBase();
+        setStatus('st-admins','Загрузка...');
+        try{
+          const data = await apiFetch((base||'') + '/api/v3/admins', {method:'GET'});
+          renderAdmins(data||{});
+          setStatus('st-admins','Список обновлён.','ok');
+        }catch(e){
+          setStatus('st-admins','Ошибка: '+e.message,'err');
+          renderAdmins(null);
+        }
+      }
+
+      function renderAdmins(data){
+        const el = #admins-list;
+        if(!el) return;
+        if(!data){ el.innerHTML = '<div class="hint">Не удалось загрузить (нужна сессия GGSHNIKK на нужном origin).</div>'; return; }
+        const builtin = (data.builtin||[]).map(u=>'<li><code>'+u+'</code> <span class="hint">(встроенный)</span></li>').join('');
+        const appointed = (data.appointed||[]);
+        const appt = appointed.length ? appointed.map(a=>{
+          const u = String(a.username||'');
+          return '<li style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin:4px 0"><span><code>'+u+'</code> <span class="hint">'+(a.granted_at||'')+'</span></span>'+
+            '<button class="btn sec" data-remove-admin="'+u+'" style="padding:4px 8px;font-size:12px">Снять</button></li>';
+        }).join('') : '<li class="hint">Нет назначенных админов</li>';
+        el.innerHTML = '<div style="margin:6px 0 4px;color:var(--muted);font-size:12px">Встроенные (всегда):</div><ul style="margin:0 0 8px 18px">'+builtin+'</ul>'+
+          '<div style="margin:6px 0 4px;color:var(--muted);font-size:12px">Назначенные GGSHNIKK:</div><ul style="margin:0 0 0 18px;list-style:none;padding:0">'+appt+'</ul>';
+        el.querySelectorAll('[data-remove-admin]').forEach(btn=>{
+          btn.addEventListener('click', async ()=>{
+            const u = btn.getAttribute('data-remove-admin');
+            if(!u) return;
+            if(!confirm('Снять админ-права у '+u+'?')) return;
+            const base = adminsApiBase();
+            setStatus('st-admins','Снятие...');
+            try{
+              await apiFetch((base||'') + '/api/v3/admins/' + encodeURIComponent(u), {method:'DELETE'});
+              setStatus('st-admins','Снято: '+u,'ok');
+              loadAdmins();
+            }catch(e){ setStatus('st-admins','Ошибка: '+e.message,'err'); }
+          });
+        });
+      }
+
+      async function addAdmin(){
+        const name = (#admin-username.value||'').trim();
+        if(!name){ setStatus('st-admins','Укажите логин','err'); return; }
+        const base = adminsApiBase();
+        setStatus('st-admins','Назначение...');
+        try{
+          await apiFetch((base||'') + '/api/v3/admins', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({username: name})});
+          #admin-username.value='';
+          setStatus('st-admins','Назначен: '+name,'ok');
+          loadAdmins();
+        }catch(e){ setStatus('st-admins','Ошибка: '+e.message,'err'); }
+      }
+      generateCss();
+    }
+
+    init();
+  })();
+  </script>
+</body>
+</html>

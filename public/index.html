@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <title>SkinBase</title>
+  <link rel="icon" href="/favicon.png" type="image/png">
+  <link rel="stylesheet" href="/styles.css?v=3">
+  <script>
+    window.SKINBASE_BRANDING = window.SKINBASE_BRANDING || {
+      configUrl: '/api/branding/config',
+      adminUrl: '/api/branding/config'
+    };
+  </script>
+  <script src="/branding.js"></script>
+</head>
+<body>
+  <div id="app">
+    <nav id="navbar" class="hidden">
+      <div class="nav-inner">
+        <div class="nav-brand">
+          <img class="brand-icon" src="/skinbase-icon.png" alt="">
+          <span class="brand-text">SkinBase</span>
+        </div>
+        <div class="nav-links">
+          <button class="nav-link" data-view="dashboard">Библиотека</button>
+          <a class="nav-link" href="/animated">Анимированные</a>
+          <button class="nav-link" data-view="equipped">Экипировка</button>
+          <button class="nav-link" data-view="add">+ Добавить</button>
+          <button class="nav-link" data-view="tokens">Токены</button>
+        </div>
+        <div class="nav-user">
+          <span id="nav-username" class="nav-username"></span>
+          <button id="logout-btn" class="btn btn-ghost" title="Выйти">⏻</button>
+        </div>
+      </div>
+    </nav>
+
+    <main id="main">
+      <div id="view-auth">
+        <div class="auth-container">
+          <div class="auth-card">
+            <div class="auth-header">
+              <img class="auth-brand" src="/skinbase-icon.png" alt="">
+              <h1>SkinBase</h1>
+              <p>Хранилище скинов для Minecraft</p>
+            </div>
+            <div class="auth-tabs">
+              <button class="auth-tab active" data-tab="login">Вход</button>
+              <button class="auth-tab" data-tab="register">Регистрация</button>
+            </div>
+            <form id="auth-form">
+              <div id="auth-error" class="auth-error hidden"></div>
+              <div class="field">
+                <label for="auth-username">Имя пользователя</label>
+                <input id="auth-username" type="text" placeholder="Username" required autocomplete="username">
+              </div>
+              <div class="field">
+                <label for="auth-password">Пароль</label>
+                <input id="auth-password" type="password" placeholder="••••••" required autocomplete="current-password">
+              </div>
+              <button type="submit" class="btn btn-primary btn-full" id="auth-submit">Войти</button>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <div id="view-dashboard" class="view hidden">
+        <div class="dashboard-header">
+          <div class="search-bar">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="search-input" placeholder="Поиск плащей..." class="search-input">
+          </div>
+        </div>
+        <div id="skins-grid" class="skins-grid">
+          <div class="loading">Загрузка...</div>
+        </div>
+      </div>
+
+      <div id="view-equipped" class="view hidden">
+        <h2 class="view-title">Экипировка</h2>
+        <div class="equip-grid">
+          <div class="equip-slot" data-category="cape">
+            <div class="slot-header">
+              <span class="slot-icon">🦅</span>
+              <span class="slot-label">Плащ</span>
+            </div>
+            <div class="slot-preview" id="equip-cape"></div>
+            <button class="btn btn-ghost btn-sm slot-clear hidden" data-category="cape">Снять</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="view-tokens" class="view hidden">
+        <div class="tokens-header">
+          <h2 class="view-title">API-токены</h2>
+          <button class="btn btn-primary" id="token-create-btn">+ Создать токен</button>
+        </div>
+        <p class="tokens-sub">
+          Токены дают программам доступ к вашему аккаунту через <code>Authorization: Bearer &lt;token&gt;</code>
+          — например, для загрузки плащей из модов и скриптов. Храните их в безопасном месте.
+        </p>
+        <div id="tokens-list">
+          <div class="loading">Загрузка...</div>
+        </div>
+      </div>
+
+      <div id="view-add" class="view hidden">
+        <h2 class="view-title">Добавить плащ</h2>
+        <form id="skin-form" class="skin-form">
+          <div class="field">
+            <label for="skin-name">Название</label>
+            <input id="skin-name" type="text" placeholder="Мой крутой плащ" required>
+          </div>
+          <div class="field">
+            <label>Файл плаща (PNG)</label>
+            <div id="drop-zone" class="drop-zone">
+              <div class="drop-content">
+                <span class="drop-icon">🦅</span>
+                <p class="drop-text">Перетащите PNG сюда</p>
+                <small class="drop-hint">или нажмите, чтобы выбрать файл</small>
+              </div>
+              <input type="file" id="skin-file-input" accept="image/png" hidden>
+            </div>
+            <small class="field-hint" id="upload-limit-hint">PNG до 20 МБ · плащ 64×32 или 1024×512</small>
+          </div>
+          <div class="field">
+            <label for="skin-tags">Теги</label>
+            <input id="skin-tags" type="text" placeholder="красный, огонь, pvp">
+            <small class="field-hint">Через запятую</small>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary" id="skin-submit">Сохранить</button>
+            <button type="button" class="btn btn-ghost" id="skin-cancel">Отмена</button>
+          </div>
+          <input type="hidden" id="skin-id" value="">
+        </form>
+      </div>
+    </main>
+  </div>
+
+  <div id="toast-container"></div>
+
+  <div id="backup-modal" class="modal hidden">
+    <div class="modal-overlay"></div>
+    <div class="modal-card">
+      <div class="modal-icon">📦</div>
+      <h3 class="modal-title">Массовая миграция на новый формат</h3>
+      <p class="modal-text">
+        SkinBase перешёл на новую систему хранения, и старые скины (персонажи, элитры)
+        больше несовместимы с новыми стандартами — они были удалены.
+        Мы сохранили ссылки на ваши скины (<span id="backup-count">0</span> шт.).
+      </p>
+      <p class="modal-text modal-hint">Хотите скачать бэкап JSON-файлом? После ответа он будет удалён.</p>
+      <div class="modal-actions">
+        <button class="btn btn-primary" id="backup-download-btn">Скачать бэкап</button>
+        <button class="btn btn-ghost" id="backup-decline-btn">Не нужно</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="token-modal" class="modal hidden">
+    <div class="modal-overlay"></div>
+    <div class="modal-card">
+      <div class="modal-icon">🔑</div>
+      <h3 class="modal-title" id="token-modal-title">Новый API-токен</h3>
+      <p class="modal-text" id="token-modal-text">Скопируйте токен — он показывается только один раз.</p>
+      <div class="token-display">
+        <input type="text" id="token-value" readonly>
+        <button class="btn btn-sm" id="token-copy-btn" title="Скопировать">⧉</button>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-primary" id="token-done-btn">Понятно</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="token-create-modal" class="modal hidden">
+    <div class="modal-overlay"></div>
+    <div class="modal-card">
+      <div class="modal-icon">🔑</div>
+      <h3 class="modal-title">Создать API-токен</h3>
+      <div class="field">
+        <label for="token-name-input">Название (для чего)</label>
+        <input id="token-name-input" type="text" placeholder="CSL аддон, скрипт загрузки..." maxlength="50">
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-primary" id="token-create-confirm">Создать</button>
+        <button class="btn btn-ghost" id="token-create-cancel">Отмена</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/skinview3d@3.4.2/bundles/skinview3d.bundle.min.js"></script>
+  <script type="module" src="/app.js?v=25"></script>
+</body>
+</html>

@@ -1,0 +1,11 @@
+{
+  "name": "skinbase",
+  "private": true,
+  "scripts": {
+    "dev": "wrangler pages dev",
+    "deploy": "wrangler pages deploy",
+    "migrate": "wrangler d1 migrations apply skinbase-db",
+    "test": "node --test tests/"
+  },
+  "type": "module"
+}
