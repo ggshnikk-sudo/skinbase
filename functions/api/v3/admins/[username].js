@@ -1,4 +1,4 @@
-﻿import { getUser, json, requireSuperAdmin } from '../../../../_lib/auth.js';
+﻿import { getUser, json, requireSuperAdmin } from '../../../_lib/auth.js';
 
 function corsHeaders() {
   return {

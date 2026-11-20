@@ -7,13 +7,13 @@
     {
       "binding": "DB",
       "database_name": "skinbase-db",
-      "database_id": "<YOUR_D1_DATABASE_ID>"
+      "database_id": "6fe97a29-9587-46ad-b3fe-21a7f2040eea"
     }
   ],
   "kv_namespaces": [
     {
       "binding": "SKINS_KV",
-      "id": "<YOUR_KV_NAMESPACE_ID>"
+      "id": "e7dc8da2833a42248144acff4da36002"
     }
   ],
   "vars": {
