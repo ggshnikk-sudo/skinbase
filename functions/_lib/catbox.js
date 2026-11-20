@@ -282,12 +282,69 @@ export async function proxyTextureFile(value, env, cacheControl = CACHE_IMMUTABL
   }
 
   // Внешнее хранилище в старом формате: "gh:<path>" (например gh:capes/115.png,
-  // gh:animated/3.png). Резолвим в публичный URL и читаем как обычный файл.
-  // Базу берём из env (GH_CAPES_BASE / CAPE_FILES_BASE / S3_PUBLIC_BASE), чтобы
-  // можно было перенастроить хранение без миграции записей в D1.
+  // gh:animated/3.png). Поддерживаем два режима:
+  // 1) GitHub-репозиторий (в т.ч. приватный): GH_CAPES_REPO/GH_ASSETS_REPO +
+  //    GH_CAPES_TOKEN/GH_TOKEN/GITHUB_TOKEN, опционально GH_CAPES_BRANCH (main),
+  //    GH_CAPES_PREFIX (напр. "assets" → assets/capes/115.png).
+  // 2) Публичная база URL: GH_CAPES_BASE / CAPE_FILES_BASE / S3_PUBLIC_BASE.
   if (value.startsWith('gh:')) {
     const path = value.slice(3).replace(/^\/+/, '');
     const file = path.split('/').filter(Boolean).pop() || path;
+
+    const tryFetchGhUrl = async (url, headers) => {
+      try {
+        const upstream = await fetch(url, {
+          headers: headers || { 'User-Agent': PG_UA, 'Accept': 'image/*,*/*;q=0.8' },
+          cf: { cacheTtl: 3600, cacheEverything: true }
+        });
+        if (!upstream.ok) return null;
+        const body = await upstream.arrayBuffer();
+        return isUsableCapeBytes(body) ? body : null;
+      } catch {
+        return null;
+      }
+    };
+
+    // 1) GitHub repo storage (supports private repos via token)
+    const ghRepo = env && (env.GH_CAPES_REPO || env.GH_ASSETS_REPO || env.GITHUB_CAPES_REPO);
+    if (ghRepo) {
+      const branch = (env && (env.GH_CAPES_BRANCH || env.GH_ASSETS_BRANCH)) || 'main';
+      const token = env && (env.GH_CAPES_TOKEN || env.GH_ASSETS_TOKEN || env.GH_TOKEN || env.GITHUB_TOKEN);
+      const prefixRaw = env && (env.GH_CAPES_PREFIX || env.GH_ASSETS_PREFIX);
+      const prefixes = [];
+      if (prefixRaw != null && String(prefixRaw).trim() !== '') prefixes.push(String(prefixRaw).replace(/^\/+|\/+$/g, '') + '/');
+      // common layout: gh:capes/115.png -> assets/capes/115.png
+      prefixes.push('assets/');
+      prefixes.push('');
+      const repoPaths = [];
+      const seenPaths = new Set();
+      for (const pfx of prefixes) {
+        const rp = pfx + path;
+        if (!seenPaths.has(rp)) { seenPaths.add(rp); repoPaths.push(rp); }
+      }
+      const authHeaders = {
+        'User-Agent': PG_UA,
+        'Accept': 'application/vnd.github.raw'
+      };
+      if (token) authHeaders['Authorization'] = 'Bearer ' + token;
+      for (const rp of repoPaths) {
+        const apiUrl = `https://api.github.com/repos/${ghRepo}/contents/${rp.split('/').map(encodeURIComponent).join('/')}?ref=${encodeURIComponent(branch)}`;
+        let body = await tryFetchGhUrl(apiUrl, authHeaders);
+        if (!body && token) {
+          // fallback: raw.githubusercontent.com with auth (some setups)
+          const rawUrl = `https://raw.githubusercontent.com/${ghRepo}/${encodeURIComponent(branch)}/${rp.split('/').map(encodeURIComponent).join('/')}`;
+          body = await tryFetchGhUrl(rawUrl, { 'User-Agent': PG_UA, 'Accept': 'image/*,*/*;q=0.8', 'Authorization': 'Bearer ' + token });
+        }
+        if (!body) continue;
+        const headers = new Headers();
+        headers.set('Content-Type', 'image/png');
+        headers.set('Cache-Control', cacheControl);
+        headers.set('Access-Control-Allow-Origin', '*');
+        return new Response(body, { headers });
+      }
+    }
+
+    // 2) Public/base URL candidates
     const bases = [];
     for (const key of ['GH_CAPES_BASE', 'CAPE_FILES_BASE', 'S3_PUBLIC_BASE']) {
       const v = env && env[key];
@@ -320,7 +377,7 @@ export async function proxyTextureFile(value, env, cacheControl = CACHE_IMMUTABL
       headers.set('Access-Control-Allow-Origin', '*');
       return new Response(body, { headers });
     }
-    console.warn('gh cape unresolved:', value, 'tried', tried.size);
+    console.warn('gh cape unresolved:', value);
     return null;
   }
 
