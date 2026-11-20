@@ -142,6 +142,9 @@
         if (!state.config || String(cfg.version) !== String(state.config.version)) {
           writeCache(cfg);
           applyConfig(cfg);
+        } else if (document.readyState !== 'loading') {
+          // Версия та же, но элементы могли появиться позже первого применения.
+          try { applyImages(state.config); } catch (e) {}
         }
         return cfg;
       })
@@ -427,10 +430,22 @@
     fetchConfig();
     setInterval(fetchConfig, 60000);
 
+    function onReady() {
+      ensureAdminDom();
+      watchDomUser();
+      updateAdminUi();
+      // Скрипт выполняется в <head>, поэтому при первом applyConfig элементы body
+      // (логотип на экране входа и т.п.) ещё не в DOM. Повторяем применение после
+      // готовности, чтобы подхватить и кеш, и уже загруженный с сервера конфиг.
+      if (state.config) {
+        try { applyConfig(state.config); } catch (e) {}
+      }
+    }
+
     if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', function () { ensureAdminDom(); watchDomUser(); updateAdminUi(); });
+      document.addEventListener('DOMContentLoaded', onReady);
     } else {
-      ensureAdminDom(); watchDomUser(); updateAdminUi();
+      onReady();
     }
   }
 

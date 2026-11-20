@@ -281,6 +281,49 @@ export async function proxyTextureFile(value, env, cacheControl = CACHE_IMMUTABL
     });
   }
 
+  // Внешнее хранилище в старом формате: "gh:<path>" (например gh:capes/115.png,
+  // gh:animated/3.png). Резолвим в публичный URL и читаем как обычный файл.
+  // Базу берём из env (GH_CAPES_BASE / CAPE_FILES_BASE / S3_PUBLIC_BASE), чтобы
+  // можно было перенастроить хранение без миграции записей в D1.
+  if (value.startsWith('gh:')) {
+    const path = value.slice(3).replace(/^\/+/, '');
+    const file = path.split('/').filter(Boolean).pop() || path;
+    const bases = [];
+    for (const key of ['GH_CAPES_BASE', 'CAPE_FILES_BASE', 'S3_PUBLIC_BASE']) {
+      const v = env && env[key];
+      if (v) bases.push(String(v).replace(/\/+$/, ''));
+    }
+    const tried = new Set();
+    const candidates = [];
+    for (const base of bases) {
+      candidates.push(base + '/' + path);
+      if (file && file !== path) candidates.push(base + '/' + file);
+      // S3_PUBLIC_BASE часто указывает на /public/<bucket>, а путь в значении
+      // уже начинается с имени "папки" (capes/..., animated/...) — пробуем без
+      // дублирующего сегмента.
+      if (path.startsWith('capes/') && /\/capes$/i.test(base)) {
+        candidates.push(base + '/' + path.slice('capes/'.length));
+      }
+      if (path.startsWith('animated/') && /\/animated$/i.test(base)) {
+        candidates.push(base + '/' + path.slice('animated/'.length));
+      }
+    }
+    for (const url of candidates) {
+      if (!url || tried.has(url)) continue;
+      tried.add(url);
+      let body = await fetchCapeBytes(url);
+      if (!body) body = await fetchCapeBytes(url, { bust: true });
+      if (!body) continue;
+      const headers = new Headers();
+      headers.set('Content-Type', 'image/png');
+      headers.set('Cache-Control', cacheControl);
+      headers.set('Access-Control-Allow-Origin', '*');
+      return new Response(body, { headers });
+    }
+    console.warn('gh cape unresolved:', value, 'tried', tried.size);
+    return null;
+  }
+
   if (!value.startsWith('http')) return null;
 
   let body = await fetchCapeBytes(value);

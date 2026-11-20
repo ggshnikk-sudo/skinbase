@@ -4,6 +4,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SkinBase — Мини-админка брендинга</title>
+  <script>
+    window.SKINBASE_BRANDING = window.SKINBASE_BRANDING || {
+      configUrl: '/api/branding/config',
+      adminUrl: '/api/branding/config'
+    };
+  </script>
+  <script src="/branding.js"></script>
   <style>
     :root {
       --bg:#16120e; --surface:#1f1a14; --surface2:#241e17; --border:#352d24; --border2:#4a3f33;
@@ -494,6 +501,8 @@
       const ba=$('#btn-admin-add'); if(ba) ba.addEventListener('click', addAdmin);
       const bl=$('#btn-admins-load'); if(bl) bl.addEventListener('click', loadAdmins);
       generateCss();
+      // Автоподхват текущего конфига/темы сайта при открытии страницы
+      loadConfig();
     }
 
     init();
