@@ -239,61 +239,15 @@
   function ensureAdminDom() {
     if ($('#sb-admin-fab')) return;
     injectStyles();
-    var fab = document.createElement('button');
+    var fab = document.createElement('a');
     fab.id = 'sb-admin-fab';
     fab.className = 'sb-admin-fab';
-    fab.type = 'button';
+    fab.href = '/branding-admin.html';
     fab.textContent = '⚙ Брендинг';
+    fab.title = 'Открыть панель брендинга';
     fab.style.display = 'none';
-    fab.addEventListener('click', openPanel);
+    fab.style.textDecoration = 'none';
     document.body.appendChild(fab);
-
-    var modal = document.createElement('div');
-    modal.id = 'sb-admin-modal';
-    modal.className = 'sb-admin-modal hidden';
-    modal.innerHTML = '' +
-      '<div class="sb-admin-overlay"></div>' +
-      '<div class="sb-admin-card" role="dialog" aria-label="Брендинг">' +
-      '  <h3>Брендинг / Тема (GGSHNIKK)</h3>' +
-      '  <div class="sb-admin-grid">' +
-      '    <div>' +
-      '      <label>URL логотипа (шапка/авторизация)</label>' +
-      '      <input type="text" id="sb-a-logo" placeholder="https://.../logo.png или data:image/...">' +
-      '      <label>Загрузить файл логотипа</label>' +
-      '      <input type="file" id="sb-a-logo-file" accept="image/*">' +
-      '      <div class="sb-admin-preview"><img id="sb-a-logo-prev" alt=""><span style="font-size:12px;color:#a69685">превью</span></div>' +
-      '    </div>' +
-      '    <div>' +
-      '      <label>URL иконки/фавикона</label>' +
-      '      <input type="text" id="sb-a-icon" placeholder="https://.../icon.png или data:image/...">' +
-      '      <label>Загрузить файл иконки</label>' +
-      '      <input type="file" id="sb-a-icon-file" accept="image/*">' +
-      '      <div class="sb-admin-preview"><img id="sb-a-icon-prev" alt=""><span style="font-size:12px;color:#a69685">превью</span></div>' +
-      '    </div>' +
-      '  </div>' +
-      '  <label>Название бренда (необязательно)</label>' +
-      '  <input type="text" id="sb-a-name" placeholder="SkinBase">' +
-      '  <label>Кастомный CSS темы (фон, виджеты, сайт, плащи и т.д.)</label>' +
-      '  <textarea id="sb-a-css" spellcheck="false" placeholder=":root { --bg: #101010; --accent: #ff6600; }\nbody { background: ...; }"></textarea>' +
-      '  <div class="sb-admin-row">' +
-      '    <button type="button" class="sb-admin-btn" id="sb-a-save">Сохранить и опубликовать</button>' +
-      '    <button type="button" class="sb-admin-btn sec" id="sb-a-apply">Применить локально</button>' +
-      '    <button type="button" class="sb-admin-btn danger" id="sb-a-reset">Сбросить дефолт</button>' +
-      '    <a class="sb-admin-btn sec" href="/branding-admin.html" style="text-decoration:none;display:inline-block">Полная админ-панель</a>' +
-      '    <button type="button" class="sb-admin-btn sec" id="sb-a-close">Закрыть</button>' +
-      '    <span class="sb-admin-status" id="sb-a-status"></span>' +
-      '  </div>' +
-      '  <div style="margin-top:10px;font-size:11px;color:#736659">POST ' + ADMIN_URL + ' (JSON {config}). Бэкенд обязан проверить, что действует GGSHNIKK. Браузер и клиент подхватят конфиг при загрузке/обновлении.</div>' +
-      '</div>';
-    document.body.appendChild(modal);
-
-    modal.querySelector('.sb-admin-overlay').addEventListener('click', closePanel);
-    $('#sb-a-close').addEventListener('click', closePanel);
-    $('#sb-a-save').addEventListener('click', saveConfig);
-    $('#sb-a-apply').addEventListener('click', function () { applyConfig(readFormConfig()); setStatus('Применено локально'); });
-    $('#sb-a-reset').addEventListener('click', resetConfig);
-    bindFileInput('#sb-a-logo-file', '#sb-a-logo', '#sb-a-logo-prev');
-    bindFileInput('#sb-a-icon-file', '#sb-a-icon', '#sb-a-icon-prev');
   }
 
   function bindFileInput(fileSel, textSel, prevSel) {
