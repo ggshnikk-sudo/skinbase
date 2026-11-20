@@ -446,7 +446,7 @@
       }
 
       function renderAdmins(data){
-        const el = #admins-list;
+        const el = $('#admins-list');
         if(!el) return;
         if(!data){ el.innerHTML = '<div class="hint">Не удалось загрузить (нужна сессия GGSHNIKK на нужном origin).</div>'; return; }
         const builtin = (data.builtin||[]).map(u=>'<li><code>'+u+'</code> <span class="hint">(встроенный)</span></li>').join('');
@@ -475,19 +475,19 @@
       }
 
       async function addAdmin(){
-        const name = (#admin-username.value||'').trim();
+        const name = ($('#admin-username').value||'').trim();
         if(!name){ setStatus('st-admins','Укажите логин','err'); return; }
         const base = adminsApiBase();
         setStatus('st-admins','Назначение...');
         try{
           await apiFetch((base||'') + '/api/v3/admins', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({username: name})});
-          #admin-username.value='';
+          $('#admin-username').value='';
           setStatus('st-admins','Назначен: '+name,'ok');
           loadAdmins();
         }catch(e){ setStatus('st-admins','Ошибка: '+e.message,'err'); }
       }
-      const ba=#btn-admin-add; if(ba) ba.addEventListener('click', addAdmin);
-      const bl=#btn-admins-load; if(bl) bl.addEventListener('click', loadAdmins);
+      const ba=$('#btn-admin-add'); if(ba) ba.addEventListener('click', addAdmin);
+      const bl=$('#btn-admins-load'); if(bl) bl.addEventListener('click', loadAdmins);
       generateCss();
     }
 
