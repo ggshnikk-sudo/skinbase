@@ -276,7 +276,8 @@
       '    <button type="button" class="sb-admin-btn" id="sb-a-save">Сохранить и опубликовать</button>' +
       '    <button type="button" class="sb-admin-btn sec" id="sb-a-apply">Применить локально</button>' +
       '    <button type="button" class="sb-admin-btn danger" id="sb-a-reset">Сбросить дефолт</button>' +
-      '    <button type="button" class="sb-admin-btn sec" id="sb-a-close">Закрыть</button>' +
+      '    <a class="sb-admin-btn sec" href="/branding-admin.html" style="text-decoration:none;display:inline-block">Полная админ-панель</a>' +
+      <button type="button" class="sb-admin-btn sec" id="sb-a-close">Закрыть</button>' +
       '    <span class="sb-admin-status" id="sb-a-status"></span>' +
       '  </div>' +
       '  <div style="margin-top:10px;font-size:11px;color:#736659">POST ' + ADMIN_URL + ' (JSON {config}). Бэкенд обязан проверить, что действует GGSHNIKK. Браузер и клиент подхватят конфиг при загрузке/обновлении.</div>' +

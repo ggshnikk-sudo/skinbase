@@ -80,6 +80,16 @@ let state = {
 
 let selectedFile = null;
 
+function isUserAdmin(user) {
+  return !!(user && (user.isAdmin || user.isSuperAdmin || user.canDelete ||
+    String(user.username || '').toLowerCase() === 'ggshnikk'));
+}
+
+function updateAdminNav() {
+  const link = $('#nav-admin');
+  if (link) link.classList.toggle('hidden', !isUserAdmin(state.user));
+}
+
 const $ = sel => document.querySelector(sel);
 const $$ = sel => document.querySelectorAll(sel);
 
@@ -675,14 +685,18 @@ async function checkAuth() {
       $('#navbar').classList.remove('hidden');
       $('#view-auth').classList.add('hidden');
       $('#nav-username').textContent = state.user.username;
+      updateAdminNav();
       await Promise.all([loadSkins(), loadEquipped()]);
       showView('dashboard');
     } else {
+      updateAdminNav();
       $('#navbar').classList.add('hidden');
       $('#view-auth').classList.remove('hidden');
       showView('auth');
     }
   } catch {
+    state.user = null;
+    updateAdminNav();
     $('#navbar').classList.add('hidden');
     $('#view-auth').classList.remove('hidden');
     showView('auth');
@@ -706,6 +720,7 @@ $('#auth-form').addEventListener('submit', async (e) => {
     $('#navbar').classList.remove('hidden');
     $('#view-auth').classList.add('hidden');
     $('#nav-username').textContent = data.user.username;
+    updateAdminNav();
     await Promise.all([loadSkins(), loadEquipped()]);
     showView('dashboard');
     toast(isLogin ? 'Добро пожаловать!' : 'Аккаунт создан!', 'success');
@@ -731,6 +746,7 @@ $('#logout-btn').addEventListener('click', async () => {
   state.user = null;
   state.skins = [];
   state.equipped = { animated: null };
+  updateAdminNav();
   $('#navbar').classList.add('hidden');
   $('#view-auth').classList.remove('hidden');
   showView('auth');
