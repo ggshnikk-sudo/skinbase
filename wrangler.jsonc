@@ -29,6 +29,12 @@
     // правкой кода.
     "S3_ENDPOINT": "https://uefqmxajdzeyakvatyby.storage.supabase.co/storage/v1/s3",
     "S3_BUCKET": "capes",
-    "S3_PUBLIC_BASE": "https://uefqmxajdzeyakvatyby.supabase.co/storage/v1/object/public/capes"
+    "S3_PUBLIC_BASE": "https://uefqmxajdzeyakvatyby.supabase.co/storage/v1/object/public/capes",
+
+    // Файлы капов (gh:capes/*, gh:animated/*) в приватном GitHub-репозитории.
+    // Токен чтения contents — секрет (GH_CAPES_TOKEN / GH_TOKEN / GITHUB_TOKEN).
+    "GH_CAPES_REPO": "ggshnikk-sudo/skinbase-assets",
+    "GH_CAPES_BRANCH": "main",
+    "GH_CAPES_PREFIX": "assets"
   }
 }

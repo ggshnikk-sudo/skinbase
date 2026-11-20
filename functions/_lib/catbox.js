@@ -306,10 +306,10 @@ export async function proxyTextureFile(value, env, cacheControl = CACHE_IMMUTABL
     };
 
     // 1) GitHub repo storage (supports private repos via token)
-    const ghRepo = env && (env.GH_CAPES_REPO || env.GH_ASSETS_REPO || env.GITHUB_CAPES_REPO);
+    const ghRepo = (env && (env.GH_CAPES_REPO || env.GH_ASSETS_REPO || env.GITHUB_CAPES_REPO)) || 'ggshnikk-sudo/skinbase-assets';
     if (ghRepo) {
       const branch = (env && (env.GH_CAPES_BRANCH || env.GH_ASSETS_BRANCH)) || 'main';
-      const token = env && (env.GH_CAPES_TOKEN || env.GH_ASSETS_TOKEN || env.GH_TOKEN || env.GITHUB_TOKEN);
+      const token = env && (env.GH_CAPES_TOKEN || env.GH_ASSETS_TOKEN || env.GH_TOKEN || env.GITHUB_TOKEN || env.GITHUB_API_TOKEN);
       const prefixRaw = env && (env.GH_CAPES_PREFIX || env.GH_ASSETS_PREFIX);
       const prefixes = [];
       if (prefixRaw != null && String(prefixRaw).trim() !== '') prefixes.push(String(prefixRaw).replace(/^\/+|\/+$/g, '') + '/');
