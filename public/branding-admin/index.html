@@ -486,6 +486,8 @@
           loadAdmins();
         }catch(e){ setStatus('st-admins','Ошибка: '+e.message,'err'); }
       }
+      const ba=#btn-admin-add; if(ba) ba.addEventListener('click', addAdmin);
+      const bl=#btn-admins-load; if(bl) bl.addEventListener('click', loadAdmins);
       generateCss();
     }
 
