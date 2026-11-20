@@ -370,8 +370,13 @@
       if(cfg.logoUrl!=null || cfg.logo!=null){ $('#logo-url').value = cfg.logoUrl||cfg.logo||''; $('#logo-prev').src=$('#logo-url').value; }
       const ic = cfg.faviconUrl||cfg.iconUrl||cfg.icon||'';
       if(ic){ $('#icon-url').value = ic; $('#icon-prev').src=ic; }
-      if(cfg.themeCss){ $('#css-out').value = cfg.themeCss; setStatus('st-pub','Загружен сохранённый themeCss (ползунки могут не совпадать с ним, пока не пересоберёте).',''); }
-      generateCss();
+      if(cfg.themeCss){
+        $('#css-out').value = cfg.themeCss;
+        $('#live-preview-style').textContent = cfg.themeCss;
+        setStatus('st-pub','Загружен сохранённый themeCss (применён к странице/превью). Ползунки могут не совпадать, пока не пересоберёте.','ok');
+      } else {
+        generateCss();
+      }
     }
 
     async function publish(){
